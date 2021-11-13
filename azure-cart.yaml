@@ -1,0 +1,47 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: cart-deployment
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: cart-pod
+  template:
+    metadata:
+      labels:
+        app: cart-pod
+    spec:
+      containers:
+      - name: mynginx-container
+        image: sandeepsoni/eshop-cart
+        ports:
+        - containerPort: 80
+        imagePullPolicy: IfNotPresent
+        env:
+        - name: RedisConnectionString
+          valueFrom:
+            configMapKeyRef:
+              name: shopping-app-config
+              key: REDIS_CON_STRING          
+        - name: Secret
+          valueFrom:
+            configMapKeyRef:
+              name: shopping-app-config
+              key: IDENTITY_SECRET  
+
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: cart-srv
+spec:
+  type: ClusterIP 
+  selector:
+    app: cart-pod
+  ports:
+    - name: http
+      protocol: TCP
+      port: 80
+      targetPort: 80
